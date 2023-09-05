@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script src="./1.运行时.js"></script>
+  <script src="./2.编译时.js"></script>
+</head>
+
+<body>
+  <div id="app" style="color:red"></div>
+  <script>
+    const obj = {
+      tag: 'div',
+      children: [
+        { tag: 'span', children: 'hello world' }
+      ]
+    }
+
+    // 运行时
+    Render(obj, document.body);
+
+    const html = `
+      <div>
+        <span>hello world</span>
+      </div>
+    `
+
+    const obj2 = Compiler(html);
+    console.log(obj2);
+    Render(obj2, document.getElementById('app'))
+
+  </script>
+</body>
+
+</html>
