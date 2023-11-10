@@ -7,7 +7,7 @@ function effect(fn) {
 }
 
 // 原始数据
-const data = { text: 'hello world' };
+const data = { text: 'hello world', ok: true };
 const bucket = new WeakMap();
 
 function track(target, key) {
@@ -52,4 +52,8 @@ const obj = new Proxy(data, {
     target[key] = newValue;
     trigger(target, key);
   }
+})
+
+effect(() => {
+  document.body.innerText = obj.ok ? obj.text : 'not'
 })

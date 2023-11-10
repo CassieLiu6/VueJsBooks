@@ -1,5 +1,6 @@
 // 作用是存储被注册的副作用函数
 let activeEffect;
+const effectStack = [];
 
 function effect(fn) {
   // activeEffect = fn;
@@ -8,7 +9,10 @@ function effect(fn) {
     cleanup(effectFn);
     // 当 effectFn 执行时，将其设置为当前激活的副作用函数
     activeEffect = effectFn;
+    effectStack.push(effectFn);
     fn();
+    effectStack.pop();
+    activeEffect = effectStack[effectStack.length - 1];
   }
   // activeEffect.deps 用来存储所有与该副作用函数相关联的依赖集合
   effectFn.deps = [];
@@ -16,9 +20,9 @@ function effect(fn) {
 }
 
 function cleanup(effectFn) {
-  effectFn.deps.forEach(dep => {
+  effectFn.deps.forEach(deps => {
     // 将 effectFn 从依赖集合中移除
-    dep.delete(effectFn);
+    deps.delete(effectFn);
   })
   effectFn.deps.length = 0;
 }
@@ -56,7 +60,12 @@ function trigger(target, key) {
   if (!depsMap) return;
   // 根据 key 获取所有副作用函数的 effects
   const effects = depsMap.get(key);
-  const effectsToRun = new Set(effects) // 新增
+  const effectsToRun = new Set() // 新增
+  effects && effects.forEach(effectFn => {
+    if (effectFn !== activeEffect) {
+      effectsToRun.add(effectFn);
+    }
+  })
   // 执行副作用函数
   effectsToRun && effectsToRun.forEach(effectFn => effectFn());
   // effects && effects.forEach(fn => fn());
@@ -75,27 +84,27 @@ const obj = new Proxy(data, {
   }
 })
 
-// effect(() => {
-//   console.log("effect run");
-//   document.body.innerText = obj.ok ? obj.text : 'not';
-// })
-
-// setTimeout(() => {
-//   obj.ok = false;
-//   obj.text = "hello vue3"
-//   console.log(bucket);
-// }, 1000);
-
-let temp1, temp2;
-effect(function effectFn1() {
-  console.log('effectFn1 执行');
-  effect(function effectFn2() {
-    console.log("effectFn2 执行");
-    temp2 = obj.bar;
-  });
-  temp1 = obj.foo;
+effect(() => {
+  console.log("effect run");
+  document.body.innerText = obj.ok ? obj.text : 'not';
 })
 
 setTimeout(() => {
-  obj.foo = false;
+  obj.ok = false;
+  obj.text = "hello vue3"
+  console.log(bucket);
 }, 1000);
+
+// let temp1, temp2;
+// effect(function effectFn1() {
+//   console.log('effectFn1 执行');
+//   effect(function effectFn2() {
+//     console.log("effectFn2 执行");
+//     temp2 = obj.bar;
+//   });
+//   temp1 = obj.foo;
+// })
+
+// setTimeout(() => {
+//   obj.foo = false;
+// }, 1000);

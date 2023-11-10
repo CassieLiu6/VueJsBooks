@@ -28,7 +28,7 @@ function cleanup(effectFn) {
 }
 
 // 原始数据
-const data = { text: 'hello world', ok: true, foo: true, bar: true };
+const data = { text: 'hello world', ok: true, foo: true, bar: true, aa: 1 };
 const bucket = new WeakMap();
 
 function track(target, key) {
@@ -67,9 +67,8 @@ function trigger(target, key) {
     if (effectFn !== activeEffect) {
       effectsToRun.add(effectFn);
     }
-    effectFn()
   });
-  effectsToRun && effectsToRun.forEach(effectFn => effectFn());
+  effectsToRun.forEach(effectFn => effectFn());
 }
 
 const obj = new Proxy(data, {
@@ -94,6 +93,8 @@ effect(function effectFn1() {
   });
   temp1 = obj.foo;
 })
+
+obj.aa++
 
 setTimeout(() => {
   obj.foo = false;

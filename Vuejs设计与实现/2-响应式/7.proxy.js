@@ -32,7 +32,7 @@ function cleanup(effectFn) {
 }
 
 // 原始数据
-const data = { foo: 1 };
+const data = { foo: 1, bar: 'bar' };
 const bucket = new WeakMap();
 
 function track(target, key) {
@@ -67,17 +67,16 @@ function trigger(target, key) {
   const effectsToRun = new Set() // 新增
   // 执行副作用函数
   effects && effects.forEach(effectFn => {
-
     // 如果 trigger 触发执行的副作用函数与当前正在执行的副作用函数相同，则不触发执行
     if (effectFn !== activeEffect) {
       effectsToRun.add(effectFn);
     }
-    effectFn()
   });
+
   effectsToRun && effectsToRun.forEach(effectFn => {
     // 如果一个副作用函数存在调度器，则调用该调度器，并将副作用函数作为参数传递
     if (effectFn.options?.scheduler) {
-      effectFn.options.scheduler(effectFn);
+      effectFn.options?.scheduler(effectFn);
     } else {
       effectFn()
     }
@@ -99,16 +98,20 @@ const obj = new Proxy(data, {
 
 
 effect(() => {
-  console.log('effect1', obj.foo);
+  console.log('effect', obj.foo);
 }, {
   scheduler(fn) {
+    console.log("=========");
     setTimeout(fn);
   }
 });
 
 obj.foo++;
+obj.foo++; // 打印了两次一样的
 
 console.log('结束了');
+
+// 需要不打印过渡状态
 
 // 定义一个任务队列
 const jobQueue = new Set();
@@ -141,3 +144,10 @@ effect(() => {
     flushJob();
   }
 })
+
+obj.foo++;
+obj.foo++; // 打印了两次一样的
+
+console.log('结束了');
+
+
